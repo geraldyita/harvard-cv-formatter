@@ -1,257 +1,636 @@
 ---
 name: harvard-cv-formatter
-description: "Transforma cualquier CV en formato Harvard Business School optimizado para roles de datos. Actívate cuando el usuario: suba un CV, mencione 'formato Harvard', 'CV para datos', 'analytics', 'data engineer', o quiera mejorar su currículum. También en español: 'formatea mi CV', 'currículum en formato Harvard', 'mejorar mi CV para datos'. Maneja el proceso completo: leer el CV, diagnosticar nivel técnico, optimizar descripciones y generar un .docx profesional."
+description: "Transform any resume/CV into Harvard Business School format optimized for data analytics, analytics engineering, and data engineering roles. Trigger when user: uploads a CV, mentions 'Harvard format', 'data analytics CV', 'optimize resume for data roles', or wants to improve their resume. Handles complete workflow: read source CV, restructure content, optimize descriptions with technical terminology and metrics, generate professional .docx file."
 compatibility: "Requires: docx (npm install -g docx), pandoc"
 ---
 
 # Harvard CV Formatter for Data Professionals
 
-*Creado por Gerald Peña — Ayudando a profesionales a conseguir roles en datos con un CV moderno e impactante.*
+## Overview
 
----
+This skill transforms any resume/CV into Harvard Business School format, optimized for data roles. It maintains truthfulness while reframing experience to emphasize technical skills, quantifiable impact, and data-driven work.
 
-## Mensaje de bienvenida
+## Critical: Complete Code Template
 
-Cuando la skill se active, di esto (en español, tono amigable y simple):
+Claude MUST follow this EXACT code structure. This is a complete, working example that generates proper Harvard format CVs.
 
-> "¡Hola! 👋 Soy el **Harvard CV Formatter**, creado por Gerald Peña.
->
-> Mi trabajo es tomar tu CV y transformarlo en un formato Harvard profesional, listo para aplicar a roles en el mundo de los datos.
->
-> ¿Listo para empezar? Solo sube tu CV en cualquier formato (PDF, Word o texto) y yo me encargo del resto. 🚀"
-
-**Reglas de comunicación:**
-- Habla siempre en lenguaje simple, sin tecnicismos
-- Sé cálido y motivador, nunca frío ni intimidante
-- Evita frases negativas directas — redirige con sugerencias positivas
-- Mantén mensajes cortos; no expliques cosas que el usuario no preguntó
-
----
-
-## Step 1: Leer el CV
-
-```bash
-# .docx
-pandoc /mnt/user-data/uploads/[filename].docx -t markdown
-
-# .pdf
-pdftotext /mnt/user-data/uploads/[filename].pdf -
-```
-
-Extrae: nombre, contacto, idiomas, educación, habilidades técnicas, experiencia laboral, proyectos, certificaciones.
-
----
-
-## Step 2: Diagnóstico técnico
-
-Evalúa el CV y clasifica el perfil técnico del usuario. **Comunícalo en lenguaje simple y sin hacer sentir mal al usuario.**
-
-### Niveles de clasificación
-
-**Nivel 0 — Sin herramientas de datos:**
-No hay SQL, Python, Excel analítico, ni ninguna herramienta de BI.
-→ Después de generar el CV, di:
-> *"Tu CV ya quedó mucho mejor. Una cosa que vale la pena mencionar: de momento no refleja herramientas de datos. Si en algún momento quieres entrar a ese mundo, aprender SQL básico sería el mejor primer paso — es gratuito y relativamente rápido de aprender."*
-
-**Nivel 1 — Solo básicos (Excel u Office básico):**
-Tiene Excel pero nada más analítico.
-→ Di:
-> *"¡Buen comienzo! Excel es una base sólida. Si quieres crecer hacia roles de datos, el siguiente paso natural sería aprender SQL — con eso ya puedes acceder a una gran variedad de posiciones."*
-
-**Nivel 2 — Intermedio (Excel + SQL):**
-→ Di:
-> *"¡Vas muy bien! Excel y SQL ya te abren muchas puertas. Para dar el siguiente salto, aprenderPower BI o Tableau te haría destacar muchísimo en análisis de datos."*
-
-**Nivel 3 — Base sólida (SQL + Python o herramienta de BI):**
-→ Sin mensaje de diagnóstico. Procede directamente a la optimización.
-
-**Nivel 4 — Perfil fuerte (SQL + Python + BI + Cloud/dbt/Spark):**
-→ Sin mensaje de diagnóstico. Enfócate en maximizar métricas de impacto.
-
-### Si el CV es muy escueto en general (pocas líneas, poca experiencia):
-No digas que el CV está incompleto o que le falta contenido. En cambio, al entregar el resultado di naturalmente:
-> *"¡Aquí está tu CV mejorado! 🎉 Un tip: mientras más detalles agregues sobre tus logros y proyectos, más fuerte se ve. Si quieres, cuéntame sobre algún proyecto o tarea que hayas hecho y te ayudo a redactarlo bien."*
-
----
-
-## Step 3: Generar el CV en formato Harvard
-
-### Imports necesarios
+### Complete Node.js Script Template
 
 ```javascript
-const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-        AlignmentType, WidthType, ShadingType, BorderStyle,
+const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, 
+        AlignmentType, WidthType, ShadingType, BorderStyle, 
         ExternalHyperlink } = require('docx');
 const fs = require('fs');
 
+// Define borders - use for ALL tables
 const border = { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" };
 const borders = { top: border, bottom: border, left: border, right: border };
-const noShading = { type: ShadingType.NIL };  // Fondo transparente — aplicar a TODAS las celdas
-```
 
-### Estructura del documento (en este orden)
-
-**1. Header**
-- Nombre: bold, size 22
-- Contacto: `Tel: [phone] | e-mail: [email] | LinkedIn: [link]`
-- Usar `ExternalHyperlink` para LinkedIn/GitHub con estilo underline
-- Spacing after: 240
-
-**2. LANGUAGES** — tabla de 2 columnas
-- Formato: `- [Idioma] | [Nivel]`
-- Celdas: `borders`, `shading: noShading`, margins: `{ top:80, bottom:80, left:120, right:120 }`
-
-**3. EDUCATION** — orden cronológico inverso
-- Título del grado: bold
-- Institución: bold con fecha: `| (Finished: Month Year)` o `| (In Progress)`
-- Cursos relevantes listados debajo
-- Spacing after: 180 entre entradas
-
-**4. CORE TECHNICAL COMPETENCIES** — tabla de 3 columnas
-- Col 1: Lenguajes de programación y herramientas de datos
-- Col 2: Herramientas de BI y visualización
-- Col 3: Cloud, plataformas, metodologías
-- Celdas: `borders`, `shading: noShading`, margins: `{ top:80, bottom:80, left:120, right:120 }`
-
-**5. WORK EXPERIENCE** — orden cronológico inverso
-- Línea empresa: bold+italic `**[Empresa] | [Ciudad] ([Inicio] – [Fin])**`
-- Línea título: bold+italic `**[Cargo]**`
-- Bullets de descripción:
-  - `alignment: AlignmentType.JUSTIFIED` ← **solo en bullets de descripción, no en empresa/título**
-  - `spacing: { after: 120 }`
-- Spacing after de la última bullet: 240
-
-**6. KEY PROJECTS** (si aplica)
-- Formato: `- **[Nombre del proyecto]:** [Descripción con impacto]`
-- Spacing after: 120
-
-**7. CERTIFICATIONS**
-- Formato: `- [Nombre] ([Emisor], [Año])`
-- Spacing after: 60
-
-### Configuración de página
-
-```javascript
-sections: [{
-  properties: {
-    page: {
-      size: { width: 12240, height: 15840 },  // US Letter en DXA
-      margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 }
-    }
+const doc = new Document({
+  styles: {
+    default: { 
+      document: { 
+        run: { font: "Calibri", size: 22 } // 11pt default
+      } 
+    },
   },
-  children: [/* contenido */]
-}]
+  sections: [{
+    properties: {
+      page: {
+        size: {
+          width: 12240,   // US Letter width in DXA
+          height: 15840   // US Letter height in DXA
+        },
+        margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } // 1 inch margins
+      }
+    },
+    children: [
+      // ===== HEADER SECTION =====
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "Full Name Here",
+            bold: true,
+            size: 22
+          })
+        ],
+        spacing: { after: 120 }
+      }),
+      
+      // ===== CONTACT LINE =====
+      new Paragraph({
+        children: [
+          new TextRun({ text: "Tel: (+XXX) XXXX-XXXX | e-mail: email@example.com | LinkedIn: " }),
+          new ExternalHyperlink({
+            children: [
+              new TextRun({
+                text: "LinkedIn Profile",
+                style: "Hyperlink",
+                underline: {}
+              })
+            ],
+            link: "https://linkedin.com/in/profile"
+          })
+        ],
+        spacing: { after: 240 }
+      }),
+      
+      // ===== LANGUAGES SECTION =====
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "LANGUAGES",
+            bold: true,
+            size: 22
+          })
+        ],
+        spacing: { before: 240, after: 120 }
+      }),
+      
+      // Languages table - 2 columns
+      new Table({
+        width: { size: 9360, type: WidthType.DXA },
+        columnWidths: [4680, 4680],
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                borders,
+                width: { size: 4680, type: WidthType.DXA },
+                margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: "- English | Advanced (C1)" })
+                    ]
+                  })
+                ]
+              }),
+              new TableCell({
+                borders,
+                width: { size: 4680, type: WidthType.DXA },
+                margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: "- Spanish | Native" })
+                    ]
+                  })
+                ]
+              })
+            ]
+          })
+        ]
+      }),
+      
+      // ===== EDUCATION SECTION =====
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "EDUCATION",
+            bold: true,
+            size: 22
+          })
+        ],
+        spacing: { before: 240, after: 120 }
+      }),
+      
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "Bachelor's Degree | Major Name",
+            bold: true
+          })
+        ],
+        spacing: { after: 60 }
+      }),
+      
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "University Name | (Finished: Month Year)",
+            bold: true
+          })
+        ],
+        spacing: { after: 60 }
+      }),
+      
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "Relevant courses: Course 1, Course 2, Course 3, Course 4."
+          })
+        ],
+        spacing: { after: 180 }
+      }),
+      
+      // ===== CORE TECHNICAL COMPETENCIES =====
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "CORE TECHNICAL COMPETENCIES",
+            bold: true,
+            size: 22
+          })
+        ],
+        spacing: { before: 240, after: 120 }
+      }),
+      
+      // Tech competencies table - 3 columns
+      new Table({
+        width: { size: 9360, type: WidthType.DXA },
+        columnWidths: [3120, 3120, 3120],
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                borders,
+                width: { size: 3120, type: WidthType.DXA },
+                margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: "Python (Pandas, NumPy)" })
+                    ]
+                  })
+                ]
+              }),
+              new TableCell({
+                borders,
+                width: { size: 3120, type: WidthType.DXA },
+                margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: "Power BI / Tableau" })
+                    ]
+                  })
+                ]
+              }),
+              new TableCell({
+                borders,
+                width: { size: 3120, type: WidthType.DXA },
+                margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: "AWS / Azure Cloud Platforms" })
+                    ]
+                  })
+                ]
+              })
+            ]
+          }),
+          new TableRow({
+            children: [
+              new TableCell({
+                borders,
+                width: { size: 3120, type: WidthType.DXA },
+                margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: "SQL (PostgreSQL, MySQL)" })
+                    ]
+                  })
+                ]
+              }),
+              new TableCell({
+                borders,
+                width: { size: 3120, type: WidthType.DXA },
+                margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: "Excel (Advanced Analytics)" })
+                    ]
+                  })
+                ]
+              }),
+              new TableCell({
+                borders,
+                width: { size: 3120, type: WidthType.DXA },
+                margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: "Data Pipelines / ETL" })
+                    ]
+                  })
+                ]
+              })
+            ]
+          })
+        ]
+      }),
+      
+      // ===== WORK EXPERIENCE =====
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "WORK EXPERIENCE",
+            bold: true,
+            size: 22
+          })
+        ],
+        spacing: { before: 240, after: 120 }
+      }),
+      
+      // Company line
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "Company Name | City, Country (Month Year -- Month Year)",
+            bold: true,
+            italics: true
+          })
+        ],
+        spacing: { after: 60 }
+      }),
+      
+      // Job title line
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "Job Title -- Technical Emphasis",
+            bold: true,
+            italics: true
+          })
+        ],
+        spacing: { after: 120 }
+      }),
+      
+      // Bullet point 1 - NOTE: alignment is JUSTIFIED
+      new Paragraph({
+        alignment: AlignmentType.JUSTIFIED,
+        children: [
+          new TextRun({
+            text: "- Architected and maintained end-to-end data pipelines processing 10,000+ records daily using Python (Pandas, NumPy) and PySpark, enabling automated monitoring and reducing manual review time by 45% while ensuring data quality across operations."
+          })
+        ],
+        spacing: { after: 120 }
+      }),
+      
+      // Bullet point 2
+      new Paragraph({
+        alignment: AlignmentType.JUSTIFIED,
+        children: [
+          new TextRun({
+            text: "- Developed predictive classification models leveraging Machine Learning algorithms and RegEx pattern matching to identify high-risk records, achieving 92% precision and preventing issues before reaching customers."
+          })
+        ],
+        spacing: { after: 120 }
+      }),
+      
+      // Last bullet has spacing of 240
+      new Paragraph({
+        alignment: AlignmentType.JUSTIFIED,
+        children: [
+          new TextRun({
+            text: "- Designed interactive Power BI dashboards synthesizing KPIs, trend analysis, and forecasting that informed executive decision-making and resource allocation across international operations."
+          })
+        ],
+        spacing: { after: 240 }
+      }),
+      
+      // ===== CERTIFICATIONS =====
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "CERTIFICATIONS & PROFESSIONAL DEVELOPMENT",
+            bold: true,
+            size: 22
+          })
+        ],
+        spacing: { before: 240, after: 120 }
+      }),
+      
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "- Certification Name (Issuing Organization, Year)"
+          })
+        ],
+        spacing: { after: 60 }
+      }),
+      
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "- Another Certification (Organization, Year)"
+          })
+        ],
+        spacing: { after: 60 }
+      })
+    ]
+  }]
+});
+
+// Generate the document
+Packer.toBuffer(doc).then(buffer => {
+  fs.writeFileSync("/mnt/user-data/outputs/Name_Resume_Harvard.docx", buffer);
+  console.log("Document created successfully!");
+});
 ```
 
-### Configuración de tablas
+## Critical Formatting Rules
 
+### 1. Table Configuration (MUST BE EXACT)
+
+**Languages table (2 columns):**
 ```javascript
-// 2 columnas (idiomas)
-new Table({ width: { size: 9360, type: WidthType.DXA }, columnWidths: [4680, 4680], rows: [...] })
-
-// 3 columnas (habilidades técnicas)
-new Table({ width: { size: 9360, type: WidthType.DXA }, columnWidths: [3120, 3120, 3120], rows: [...] })
-
-// Celda estándar — aplicar a TODAS las celdas de tablas
-new TableCell({
-  borders,
-  shading: noShading,
-  width: { size: [ancho-columna], type: WidthType.DXA },
-  margins: { top: 80, bottom: 80, left: 120, right: 120 },
-  children: [new Paragraph({ children: [new TextRun("contenido")] })]
+new Table({
+  width: { size: 9360, type: WidthType.DXA },
+  columnWidths: [4680, 4680],  // MUST sum to 9360
+  rows: [...]
 })
 ```
 
----
+**Technical competencies table (3 columns):**
+```javascript
+new Table({
+  width: { size: 9360, type: WidthType.DXA },
+  columnWidths: [3120, 3120, 3120],  // MUST sum to 9360
+  rows: [...]
+})
+```
 
-## Step 4: Optimizar descripciones
+**Every TableCell MUST have:**
+```javascript
+new TableCell({
+  borders,  // Already defined at top
+  width: { size: [column-width], type: WidthType.DXA },
+  margins: { top: 80, bottom: 80, left: 120, right: 120 },
+  children: [new Paragraph({ children: [new TextRun("text")] })]
+})
+```
 
-Aplica a todos los bullets de experiencia laboral:
+### 2. Text Alignment Rules
 
-**A. Agregar contexto técnico**
-- "Manejé reportes" → "Construí dashboards en Power BI reduciendo el tiempo de reporte en un 80%"
-- "Mejoré la eficiencia" → "Automaticé procesos con Python convirtiendo tareas de 2 horas en 2 minutos"
+**ONLY use JUSTIFIED alignment for work experience bullet points:**
+```javascript
+// ✅ CORRECT - Work experience bullets
+new Paragraph({
+  alignment: AlignmentType.JUSTIFIED,
+  children: [new TextRun({ text: "- Bullet point text..." })]
+})
 
-**B. Cuantificar todo**
-- Porcentajes, volumen (N registros), tiempo ahorrado, escala (N países/equipos)
+// ❌ WRONG - Do NOT use JUSTIFIED for:
+// - Name
+// - Contact line
+// - Section headers
+// - Company/title lines
+// - Certifications
+```
 
-**C. Agregar stack tecnológico** (cuando está implícito pero no mencionado)
-- "Creaba reportes" → agregar: Power BI, SQL, Excel según contexto
+### 3. Spacing Standards
 
-**D. Reencuadrar títulos sutilmente**
-- "Senior Compliance Associate" → "Senior Compliance Associate — Data Analytics & Automation"
+```javascript
+// After name
+spacing: { after: 120 }
 
-**E. Usar terminología de datos de forma natural**
-- ETL/ELT, pipelines, data quality, dashboards, KPIs, modelado de datos
+// After contact line
+spacing: { after: 240 }
 
----
+// Section headers
+spacing: { before: 240, after: 120 }
 
-## Step 5: Ejecutar script
+// Work experience bullets
+spacing: { after: 120 }
+
+// Last bullet of each job
+spacing: { after: 240 }
+
+// Between education entries
+spacing: { after: 180 }
+
+// Certifications
+spacing: { after: 60 }
+```
+
+### 4. Work Experience Format
+
+**Exact structure for each position:**
+
+```javascript
+// 1. Company line (bold + italics, NO alignment)
+new Paragraph({
+  children: [
+    new TextRun({
+      text: "Company | Location (Start Date -- End Date or Present)",
+      bold: true,
+      italics: true
+    })
+  ],
+  spacing: { after: 60 }
+}),
+
+// 2. Job title line (bold + italics, NO alignment)
+new Paragraph({
+  children: [
+    new TextRun({
+      text: "Job Title -- Technical Specialization",
+      bold: true,
+      italics: true
+    })
+  ],
+  spacing: { after: 120 }
+}),
+
+// 3. Bullet points (JUSTIFIED alignment, spacing 120)
+new Paragraph({
+  alignment: AlignmentType.JUSTIFIED,
+  children: [new TextRun({ text: "- First bullet..." })],
+  spacing: { after: 120 }
+}),
+
+new Paragraph({
+  alignment: AlignmentType.JUSTIFIED,
+  children: [new TextRun({ text: "- Second bullet..." })],
+  spacing: { after: 120 }
+}),
+
+// 4. Last bullet (spacing 240)
+new Paragraph({
+  alignment: AlignmentType.JUSTIFIED,
+  children: [new TextRun({ text: "- Last bullet..." })],
+  spacing: { after: 240 }
+})
+```
+
+## Workflow
+
+### Step 1: Read Source CV
+
+```bash
+# For .docx
+pandoc /mnt/user-data/uploads/filename.docx -t markdown
+
+# For .pdf
+pdftotext /mnt/user-data/uploads/filename.pdf -
+```
+
+Extract: name, contact, languages, education, skills, experience, projects, certifications.
+
+### Step 2: Create the Script
+
+Using the **complete template above**, replace:
+- "Full Name Here" → Actual name
+- Contact information → Real contact info
+- Languages → User's languages with proficiency levels
+- Education → User's degrees (reverse chronological)
+- Technical competencies → User's tech skills (organized in 3 columns)
+- Work experience → User's jobs (reverse chronological)
+- Certifications → User's certifications
+
+**For each work experience position**, create:
+1. Company line
+2. Job title line (add technical emphasis if optimizing for data roles)
+3. 3-6 bullet points with optimizations
+4. Last bullet gets spacing: { after: 240 }
+
+### Step 3: Optimize Descriptions
+
+Transform bullets to emphasize data work:
+
+**Generic → Data-Optimized:**
+- "Created reports" → "Developed automated Power BI dashboards reducing reporting time from 6 hours to 15 minutes weekly"
+- "Improved efficiency" → "Architected data pipelines processing 10,000+ records daily using Python, reducing manual processing by 45%"
+- "Analyzed issues" → "Conducted root cause analysis using SQL queries and statistical methods, identifying patterns that reduced incidents by 22%"
+
+**Add quantification:**
+- Percentages (reduced by X%, improved by Y%)
+- Volume (N records, M customers, K transactions)
+- Time (from X hours to Y minutes)
+- Scale (across N countries, M teams)
+
+**Add technical tools when applicable:**
+- If they created reports → likely used Excel, Power BI, or Tableau
+- If they analyzed data → likely used SQL, Python, or Excel
+- If they automated processes → likely used Python, VBA, or PowerShell
+
+### Step 4: Execute Script
 
 ```bash
 cd /home/claude && node create_harvard_cv.js
 ```
 
-Output: `/mnt/user-data/outputs/[Nombre]_Resume_Harvard.docx`
+Output: `/mnt/user-data/outputs/Name_Resume_Harvard.docx`
 
----
-
-## Step 6: Validar
+### Step 5: Validate
 
 ```bash
-python /mnt/skills/public/docx/scripts/office/validate.py /mnt/user-data/outputs/[Nombre]_Resume_Harvard.docx
+python /mnt/skills/public/docx/scripts/office/validate.py /mnt/user-data/outputs/Name_Resume_Harvard.docx
 ```
 
-Si falla: verificar que los anchos de tabla sumen correctamente, que cada celda tenga `width` definido, sin bullets unicode, y que todos los hyperlinks estén bien formateados.
-
----
-
-## Step 7: Entregar
+### Step 6: Present
 
 ```javascript
-present_files({ filepaths: ["/mnt/user-data/outputs/[Nombre]_Resume_Harvard.docx"] })
+present_files({ filepaths: ["/mnt/user-data/outputs/Name_Resume_Harvard.docx"] })
 ```
 
-**Mensaje final al usuario (simple, breve):**
-- Qué cambió: ej. *"Mejoré 6 descripciones con métricas y lenguaje técnico"*
-- Si hiciste suposiciones, mencionarlas para que las verifique
-- Si aplica Nivel 0/1/2: incluye la sugerencia de aprendizaje del Step 2
+## Common Mistakes to Avoid
 
-**No hagas preguntas de seguimiento** a menos que el usuario pregunte algo específico.
+❌ **WRONG - Using JUSTIFIED on company/title lines:**
+```javascript
+new Paragraph({
+  alignment: AlignmentType.JUSTIFIED,  // ❌ NO!
+  children: [new TextRun({ text: "Company | Location", bold: true, italics: true })]
+})
+```
 
----
+✅ **CORRECT - No alignment on company/title lines:**
+```javascript
+new Paragraph({
+  children: [new TextRun({ text: "Company | Location", bold: true, italics: true })],
+  spacing: { after: 60 }
+})
+```
 
-## Estrategias por tipo de rol
+❌ **WRONG - Table cell without width:**
+```javascript
+new TableCell({
+  borders,
+  // Missing width! ❌
+  margins: { top: 80, bottom: 80, left: 120, right: 120 },
+  children: [...]
+})
+```
 
-| Rol | Enfatizar |
-|-----|-----------|
-| Analytics | SQL, Power BI/Tableau, KPIs, comunicación con stakeholders |
-| Analytics Engineering | dbt, Airflow, modelado de datos, SQL avanzado, testing |
-| Data Engineering | Spark, cloud (AWS/GCP/Azure), pipelines, warehousing, APIs |
+✅ **CORRECT - Table cell with width:**
+```javascript
+new TableCell({
+  borders,
+  width: { size: 3120, type: WidthType.DXA },  // ✅ Required!
+  margins: { top: 80, bottom: 80, left: 120, right: 120 },
+  children: [...]
+})
+```
 
----
+## Non-Negotiable Rules
 
-## Reglas no negociables
+1. **US Letter page size:** 12240 x 15840 DXA with 1-inch margins
+2. **Table widths MUST sum correctly:** 2-col: [4680, 4680], 3-col: [3120, 3120, 3120]
+3. **Every table cell needs width property**
+4. **JUSTIFIED only for work experience bullets**
+5. **Never use unicode bullets** - always use "- " as plain text
+6. **All links must use ExternalHyperlink**
+7. **Font: Calibri, size 22 (11pt)**
+8. **Never fabricate experience** - only optimize what exists
 
-1. **El CV generado siempre en inglés** — sin importar el idioma del CV original o el idioma en que habla el usuario. La conversación con el usuario es en español; el contenido del .docx es en inglés.
-2. Nunca inventar experiencia — solo optimizar lo que existe
-3. Mantener la credibilidad — no sobre-tecnificar roles no técnicos
-4. Preservar la voz del usuario
-5. Copias exactas de fechas y nombres tal como aparecen en el CV original (traducir al inglés si están en otro idioma)
-6. `alignment: JUSTIFIED` **solo** en bullets de descripción, nunca en encabezados o líneas de empresa
-7. `shading: noShading` en **todas** las celdas de tablas sin excepción
+## Success Checklist
 
----
+Before presenting the CV, verify:
 
-## Checklist final
-
-- [ ] Información personal correcta
-- [ ] Fechas en formato: (Month Year – Month Year)
-- [ ] 3+ métricas cuantificables en experiencia
-- [ ] Sección de competencias: 10+ herramientas
-- [ ] Todos los hyperlinks funcionan
-- [ ] Documento valida sin errores
-- [ ] Tamaño US Letter (12240 × 15840 DXA), márgenes de 1 pulgada
-- [ ] Sin bullets unicode
-- [ ] Justificación de texto solo en bullets de descripción
-- [ ] Todas las celdas de tabla con `shading: noShading`
+- [ ] Name and contact are correct
+- [ ] All dates formatted as (Month Year -- Month Year)
+- [ ] At least 3 quantifiable metrics in work experience
+- [ ] Technical competencies has 10+ items
+- [ ] All hyperlinks work
+- [ ] Document validates without errors
+- [ ] JUSTIFIED alignment ONLY on work experience bullets
+- [ ] Company/title lines have NO alignment property
+- [ ] All table cells have width property
+- [ ] Table column widths sum to 9360
+- [ ] Spacing values are correct
+- [ ] No unicode bullets (only "- " plain text)
