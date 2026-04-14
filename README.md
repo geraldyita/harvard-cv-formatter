@@ -18,6 +18,14 @@ Turn your CV into a clean, professional Harvard-style resume optimized for data 
 
 ## ⚙️ How to Install
 
+### Quick session (no install needed)
+
+You can also use this skill for a single conversation without installing anything. Just paste this in Claude:
+
+```
+Learn this skill and apply it: https://github.com/geraldyita/harvard-cv-formatter
+```
+
 ### Easy way (recommended)
 
 1. Download `harvard-cv-formatter.skill`
