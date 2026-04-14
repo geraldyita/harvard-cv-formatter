@@ -22,9 +22,10 @@ const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
         ExternalHyperlink } = require('docx');
 const fs = require('fs');
 
-// Define borders - use for ALL tables
-const border = { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" };
-const borders = { top: border, bottom: border, left: border, right: border };
+const border = { style: BorderStyle.SINGLE, size: 4, color: "000000" };
+const outerBorders = { top: border, bottom: border, left: border, right: border };
+const noBorders = { top: { style: BorderStyle.NIL }, bottom: { style: BorderStyle.NIL },
+                    left: { style: BorderStyle.NIL }, right: { style: BorderStyle.NIL } };
 
 const doc = new Document({
   styles: {
@@ -41,7 +42,7 @@ const doc = new Document({
           width: 12240,   // US Letter width in DXA
           height: 15840   // US Letter height in DXA
         },
-        margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } // 1 inch margins
+        margin: { top: 360, right: 1440, bottom: 1440, left: 1440 } // top=0.25", others=1 inch
       }
     },
     children: [
@@ -49,7 +50,7 @@ const doc = new Document({
       new Paragraph({
         children: [
           new TextRun({
-            text: "Full Name Here",
+            text: "Full Name Here",  // Title Case, NEVER ALL CAPS
             bold: true,
             size: 22
           })
@@ -58,6 +59,8 @@ const doc = new Document({
       }),
       
       // ===== CONTACT LINE =====
+      // Format: Tel: (+506) XXXX-XXXX | e-mail: addr | LinkedIn: Display Name
+      // No physical address
       new Paragraph({
         children: [
           new TextRun({ text: "Tel: (+XXX) XXXX-XXXX | e-mail: email@example.com | LinkedIn: " }),
@@ -88,6 +91,7 @@ const doc = new Document({
       }),
       
       // Languages table - 2 columns
+      // Outer border visible (single black sz=4), inner cell borders NIL
       new Table({
         width: { size: 9360, type: WidthType.DXA },
         columnWidths: [4680, 4680],
@@ -95,7 +99,8 @@ const doc = new Document({
           new TableRow({
             children: [
               new TableCell({
-                borders,
+                borders: outerBorders,  // outer border visible
+                shading: { type: ShadingType.NIL },
                 width: { size: 4680, type: WidthType.DXA },
                 margins: { top: 80, bottom: 80, left: 120, right: 120 },
                 children: [
@@ -107,7 +112,8 @@ const doc = new Document({
                 ]
               }),
               new TableCell({
-                borders,
+                borders: noBorders,     // inner cell: no border
+                shading: { type: ShadingType.NIL },
                 width: { size: 4680, type: WidthType.DXA },
                 margins: { top: 80, bottom: 80, left: 120, right: 120 },
                 children: [
@@ -177,44 +183,48 @@ const doc = new Document({
       }),
       
       // Tech competencies table - 3 columns
+      // Width 10260, cols [3120, 3120, 4020], NO borders, font 10pt (size 20)
       new Table({
-        width: { size: 9360, type: WidthType.DXA },
-        columnWidths: [3120, 3120, 3120],
+        width: { size: 10260, type: WidthType.DXA },
+        columnWidths: [3120, 3120, 4020],  // MUST sum to 10260
         rows: [
           new TableRow({
             children: [
               new TableCell({
-                borders,
+                borders: noBorders,
+                shading: { type: ShadingType.NIL },
                 width: { size: 3120, type: WidthType.DXA },
                 margins: { top: 80, bottom: 80, left: 120, right: 120 },
                 children: [
                   new Paragraph({
                     children: [
-                      new TextRun({ text: "Python (Pandas, NumPy)" })
+                      new TextRun({ text: "Python (Pandas, NumPy)", size: 20 })
                     ]
                   })
                 ]
               }),
               new TableCell({
-                borders,
+                borders: noBorders,
+                shading: { type: ShadingType.NIL },
                 width: { size: 3120, type: WidthType.DXA },
                 margins: { top: 80, bottom: 80, left: 120, right: 120 },
                 children: [
                   new Paragraph({
                     children: [
-                      new TextRun({ text: "Power BI / Tableau" })
+                      new TextRun({ text: "Power BI / Tableau", size: 20 })
                     ]
                   })
                 ]
               }),
               new TableCell({
-                borders,
-                width: { size: 3120, type: WidthType.DXA },
+                borders: noBorders,
+                shading: { type: ShadingType.NIL },
+                width: { size: 4020, type: WidthType.DXA },
                 margins: { top: 80, bottom: 80, left: 120, right: 120 },
                 children: [
                   new Paragraph({
                     children: [
-                      new TextRun({ text: "AWS / Azure Cloud Platforms" })
+                      new TextRun({ text: "AWS / Azure Cloud Platforms", size: 20 })
                     ]
                   })
                 ]
@@ -224,37 +234,40 @@ const doc = new Document({
           new TableRow({
             children: [
               new TableCell({
-                borders,
+                borders: noBorders,
+                shading: { type: ShadingType.NIL },
                 width: { size: 3120, type: WidthType.DXA },
                 margins: { top: 80, bottom: 80, left: 120, right: 120 },
                 children: [
                   new Paragraph({
                     children: [
-                      new TextRun({ text: "SQL (PostgreSQL, MySQL)" })
+                      new TextRun({ text: "SQL (PostgreSQL, MySQL)", size: 20 })
                     ]
                   })
                 ]
               }),
               new TableCell({
-                borders,
+                borders: noBorders,
+                shading: { type: ShadingType.NIL },
                 width: { size: 3120, type: WidthType.DXA },
                 margins: { top: 80, bottom: 80, left: 120, right: 120 },
                 children: [
                   new Paragraph({
                     children: [
-                      new TextRun({ text: "Excel (Advanced Analytics)" })
+                      new TextRun({ text: "Excel (Advanced Analytics)", size: 20 })
                     ]
                   })
                 ]
               }),
               new TableCell({
-                borders,
-                width: { size: 3120, type: WidthType.DXA },
+                borders: noBorders,
+                shading: { type: ShadingType.NIL },
+                width: { size: 4020, type: WidthType.DXA },
                 margins: { top: 80, bottom: 80, left: 120, right: 120 },
                 children: [
                   new Paragraph({
                     children: [
-                      new TextRun({ text: "Data Pipelines / ETL" })
+                      new TextRun({ text: "Data Pipelines / ETL", size: 20 })
                     ]
                   })
                 ]
@@ -288,13 +301,26 @@ const doc = new Document({
         spacing: { after: 60 }
       }),
       
-      // Job title line
+      // Job title line (bold + italics)
       new Paragraph({
         children: [
           new TextRun({
-            text: "Job Title -- Technical Emphasis",
+            text: "Job Title",
             bold: true,
             italics: true
+          })
+        ],
+        spacing: { after: 60 }  // after=60; use after=120 if no sub-context line follows
+      }),
+      
+      // Sub-context line (OPTIONAL) - italic + underline, NOT bold
+      // Use only if role has special context (e.g. specific team/area)
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "Area or Sub-context Description",
+            italics: true,
+            underline: {}
           })
         ],
         spacing: { after: 120 }
@@ -330,14 +356,15 @@ const doc = new Document({
             text: "- Designed interactive Power BI dashboards synthesizing KPIs, trend analysis, and forecasting that informed executive decision-making and resource allocation across international operations."
           })
         ],
-        spacing: { after: 240 }
+        spacing: { after: 120 }  // same spacing as other bullets
       }),
       
-      // ===== CERTIFICATIONS =====
+      // ===== PROFESSIONAL DEVELOPMENT =====
+      // (replaces CERTIFICATIONS — includes certs, courses, workshops, memberships)
       new Paragraph({
         children: [
           new TextRun({
-            text: "CERTIFICATIONS & PROFESSIONAL DEVELOPMENT",
+            text: "PROFESSIONAL DEVELOPMENT",
             bold: true,
             size: 22
           })
@@ -351,7 +378,7 @@ const doc = new Document({
             text: "- Certification Name (Issuing Organization, Year)"
           })
         ],
-        spacing: { after: 60 }
+        spacing: { after: 120 }
       }),
       
       new Paragraph({
@@ -360,7 +387,7 @@ const doc = new Document({
             text: "- Another Certification (Organization, Year)"
           })
         ],
-        spacing: { after: 60 }
+        spacing: { after: 120 }
       })
     ]
   }]
@@ -377,22 +404,25 @@ Packer.toBuffer(doc).then(buffer => {
 
 ### 1. Table Configuration (MUST BE EXACT)
 
-**Languages table (2 columns):**
+**Languages table (2 columns) — outer border visible, inner borders NIL:**
 ```javascript
 new Table({
   width: { size: 9360, type: WidthType.DXA },
   columnWidths: [4680, 4680],  // MUST sum to 9360
   rows: [...]
 })
+// First cell: borders: outerBorders
+// Subsequent cells: borders: noBorders
 ```
 
-**Technical competencies table (3 columns):**
+**Technical competencies table (3 columns) — NO borders, 10pt font:**
 ```javascript
 new Table({
-  width: { size: 9360, type: WidthType.DXA },
-  columnWidths: [3120, 3120, 3120],  // MUST sum to 9360
+  width: { size: 10260, type: WidthType.DXA },
+  columnWidths: [3120, 3120, 4020],  // MUST sum to 10260
   rows: [...]
 })
+// All cells: borders: noBorders, TextRun size: 20 (10pt)
 ```
 
 **Every TableCell MUST have:**
@@ -435,17 +465,17 @@ spacing: { after: 240 }
 // Section headers
 spacing: { before: 240, after: 120 }
 
-// Work experience bullets
+// Work experience bullets (all bullets, including last)
 spacing: { after: 120 }
 
-// Last bullet of each job
-spacing: { after: 240 }
+// Education degree/institution lines
+spacing: { after: 60 }
 
-// Between education entries
+// Between education entries (relevant courses)
 spacing: { after: 180 }
 
-// Certifications
-spacing: { after: 60 }
+// Professional development bullets
+spacing: { after: 120 }
 ```
 
 ### 4. Work Experience Format
@@ -453,11 +483,12 @@ spacing: { after: 60 }
 **Exact structure for each position:**
 
 ```javascript
-// 1. Company line (bold + italics, NO alignment)
+// 1. Company line (bold + italics)
+// Format: "Company | Location (Start Date – End Date or Present)"
 new Paragraph({
   children: [
     new TextRun({
-      text: "Company | Location (Start Date -- End Date or Present)",
+      text: "Company | Location (Start Date -- End Date)",
       bold: true,
       italics: true
     })
@@ -465,19 +496,32 @@ new Paragraph({
   spacing: { after: 60 }
 }),
 
-// 2. Job title line (bold + italics, NO alignment)
+// 2. Job title line (bold + italics)
 new Paragraph({
   children: [
     new TextRun({
-      text: "Job Title -- Technical Specialization",
+      text: "Job Title",
       bold: true,
       italics: true
+    })
+  ],
+  spacing: { after: 60 }  // after=60; use after=120 if no sub-context
+}),
+
+// 3. Sub-context line (OPTIONAL) — italic+underline, NOT bold
+// Use only when role has a specific area or sub-team context
+new Paragraph({
+  children: [
+    new TextRun({
+      text: "Area or Sub-context",
+      italics: true,
+      underline: {}
     })
   ],
   spacing: { after: 120 }
 }),
 
-// 3. Bullet points (JUSTIFIED alignment, spacing 120)
+// 4. Bullet points (JUSTIFIED alignment, spacing 120)
 new Paragraph({
   alignment: AlignmentType.JUSTIFIED,
   children: [new TextRun({ text: "- First bullet..." })],
@@ -486,15 +530,8 @@ new Paragraph({
 
 new Paragraph({
   alignment: AlignmentType.JUSTIFIED,
-  children: [new TextRun({ text: "- Second bullet..." })],
-  spacing: { after: 120 }
-}),
-
-// 4. Last bullet (spacing 240)
-new Paragraph({
-  alignment: AlignmentType.JUSTIFIED,
   children: [new TextRun({ text: "- Last bullet..." })],
-  spacing: { after: 240 }
+  spacing: { after: 120 }  // same as other bullets, no special last-bullet spacing
 })
 ```
 
@@ -515,19 +552,22 @@ Extract: name, contact, languages, education, skills, experience, projects, cert
 ### Step 2: Create the Script
 
 Using the **complete template above**, replace:
-- "Full Name Here" → Actual name
-- Contact information → Real contact info
+- "Full Name Here" → Actual name in **Title Case** (never ALL CAPS)
+- Contact information → Real contact info (no physical address)
 - Languages → User's languages with proficiency levels
 - Education → User's degrees (reverse chronological)
-- Technical competencies → User's tech skills (organized in 3 columns)
+- Technical competencies → User's tech skills (organized in 3 columns, max 15 items)
 - Work experience → User's jobs (reverse chronological)
-- Certifications → User's certifications
+- KEY ANALYTICS PROJECTS → **Only include if source CV has a projects section. If not, omit entirely.**
+- PROFESSIONAL DEVELOPMENT → User's certifications, courses, workshops
 
 **For each work experience position**, create:
-1. Company line
-2. Job title line (add technical emphasis if optimizing for data roles)
-3. 3-6 bullet points with optimizations
-4. Last bullet gets spacing: { after: 240 }
+1. Company line (bold+italic)
+2. Job title line (bold+italic)
+3. Sub-context line (italic+underline, optional — only if needed)
+4. 3-6 bullet points (JUSTIFIED, after=120)
+
+**KEY ANALYTICS PROJECTS section**: Include only if the source CV contains a projects section. If the original has no projects, skip this section entirely.
 
 ### Step 3: Optimize Descriptions
 
@@ -548,6 +588,13 @@ Transform bullets to emphasize data work:
 - If they created reports → likely used Excel, Power BI, or Tableau
 - If they analyzed data → likely used SQL, Python, or Excel
 - If they automated processes → likely used Python, VBA, or PowerShell
+
+**Fix OCR artifacts in scanned source CVs:**
+- "G" isolated → "&"
+- "Risfi" → "Risk"
+- "FPGA" in financial context → "FP&A"
+- "fiing" → "king" (e.g. "worfiling" → "working")
+- Always verify text makes sense in context before applying correction
 
 ### Step 4: Execute Script
 
@@ -609,28 +656,35 @@ new TableCell({
 
 ## Non-Negotiable Rules
 
-1. **US Letter page size:** 12240 x 15840 DXA with 1-inch margins
-2. **Table widths MUST sum correctly:** 2-col: [4680, 4680], 3-col: [3120, 3120, 3120]
-3. **Every table cell needs width property**
-4. **JUSTIFIED only for work experience bullets**
-5. **Never use unicode bullets** - always use "- " as plain text
-6. **All links must use ExternalHyperlink**
-7. **Font: Calibri, size 22 (11pt)**
-8. **Never fabricate experience** - only optimize what exists
+1. **US Letter page size:** 12240 x 15840 DXA, margins top=360, right/bottom/left=1440
+2. **Languages table:** width=9360, cols=[4680,4680], outer border visible, inner borders NIL
+3. **Skills table:** width=10260, cols=[3120,3120,4020], NO borders, font size=20 (10pt)
+4. **Every table cell needs width property and shading: noShading**
+5. **JUSTIFIED only for work experience and project bullets**
+6. **Never use unicode bullets** - always use "- " as plain text
+7. **All links must use ExternalHyperlink**
+8. **Font: Calibri, size 22 (11pt)** default; skills table uses size 20 (10pt)
+9. **Never fabricate experience** - only optimize what exists
+10. **KEY ANALYTICS PROJECTS only if source CV has projects section** — omit if not
+11. **Name in Title Case** — never ALL CAPS
+12. **Last section is PROFESSIONAL DEVELOPMENT** — not "Certifications"
 
 ## Success Checklist
 
 Before presenting the CV, verify:
 
-- [ ] Name and contact are correct
+- [ ] Name and contact are correct (name in Title Case, no address)
 - [ ] All dates formatted as (Month Year -- Month Year)
 - [ ] At least 3 quantifiable metrics in work experience
-- [ ] Technical competencies has 10+ items
+- [ ] Technical competencies has 10-15 items
 - [ ] All hyperlinks work
 - [ ] Document validates without errors
-- [ ] JUSTIFIED alignment ONLY on work experience bullets
+- [ ] Margins: top=360, right/bottom/left=1440
+- [ ] JUSTIFIED alignment ONLY on work experience and project bullets
 - [ ] Company/title lines have NO alignment property
-- [ ] All table cells have width property
-- [ ] Table column widths sum to 9360
-- [ ] Spacing values are correct
+- [ ] All table cells have width property and shading: noShading
+- [ ] Languages table: width=9360, cols=[4680,4680], outer border visible
+- [ ] Skills table: width=10260, cols=[3120,3120,4020], no borders, size=20
 - [ ] No unicode bullets (only "- " plain text)
+- [ ] KEY ANALYTICS PROJECTS present ONLY if source CV had projects section
+- [ ] Last section is PROFESSIONAL DEVELOPMENT (not Certifications)
